@@ -43,6 +43,7 @@ services:
   moonraker:
     image: mkuf/moonraker:latest
     restart: unless-stopped
+    command: -d /opt/printer_data
     pid: host
     logging:
       driver: none
@@ -60,6 +61,7 @@ services:
       - gcode:/opt/printer_data/gcodes
       - log:/opt/printer_data/logs
       - moonraker-db:/opt/printer_data/database
+      - data:/opt/printer_data
       - ./config:/opt/printer_data/config
     profiles:
       - fluidd
@@ -159,6 +161,7 @@ volumes:
   gcode:
   octoprint:
   moonraker-db:
+  data:
   log:
     driver_opts:
       type: tmpfs
