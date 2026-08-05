@@ -74,6 +74,16 @@ prind-tools "scripts/flash-sdcard.sh <device> <board>"
 
 If no official flash method is available, you can retrieve the `klipper.bin` from the `out` directory that is created by `make` and Follow your boards instructions on how to proceed with flashing.
 
+#### Build firmware for SKR mini E3 v1.2
+
+This repository includes a repeatable build for the configured SKR mini E3 v1.2. It writes the STM32F103 build configuration required by `config/printer.cfg`, builds Klipper in the tools container, and creates `out/firmware.bin`.
+
+```bash
+./scripts/build_firmware
+```
+
+Copy `out/firmware.bin` to the root of a FAT32-formatted SD card, safely eject it, then insert it into the powered-off printer and turn the printer on. The script does not flash the board automatically because the board uses the SD-card bootloader workflow.
+
 ### Add your Configuration to docker-compose.override.yaml
 Locate the `webcam` Service within `docker-compose.override.yaml` and update the `device` Section with the Device Name of your Webcam.  
 In this example, the Webcam is using device `/dev/video0`. Do not edit any other lines.
