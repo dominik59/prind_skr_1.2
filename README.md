@@ -126,6 +126,11 @@ To start the stack with Mainsail:
 docker compose --profile mainsail up -d
 ```
 
+The equivalent helper script can be run from the repository root:
+```bash
+./scripts/initial_run.sh
+```
+
 Switching between profiles requires the whole stack to be torn down before starting another Frontend.  
 Running two Frontends at the same time is currently not supported behind a proxy.
 Switching from fluidd to mainsail would look like this: 
