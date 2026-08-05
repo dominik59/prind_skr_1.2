@@ -1,30 +1,20 @@
-## Ustreamer base Service
-x-ustreamer-svc: &ustreamer-svc
-  image: mkuf/ustreamer:latest
-  restart: unless-stopped
-  command: >
-    --host=0.0.0.0
-    --port=8080
-    --slowdown
-    --device=/dev/webcam
-    --resolution=1280x960
-    --format=MJPEG
-    --desired-fps=30
-
-## Add your personal config here
 services:
   klipper:
+    image: klipper:latest
+    build:
+      context: docker/klipper
+      target: run
     devices:
       - /dev/serial/by-id/usb-Klipper_stm32f103xe_37FFD7054246383412640557-if00:/dev/serial/by-id/usb-Klipper_stm32f103xe_37FFD7054246383412640557-if00
 
-  # webcam:
-  #   <<: *ustreamer-svc
-  #   devices:
-  #     - /dev/video0:/dev/webcam
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.services.webcam.loadbalancer.server.port=8080"
-  #     - "traefik.http.routers.webcam.rule=PathPrefix(`/webcam`)"
-  #     - "traefik.http.routers.webcam.entrypoints=web"
-  #     - "traefik.http.middlewares.webcam.stripprefix.prefixes=/webcam"
-  #     - "traefik.http.routers.webcam.middlewares=webcam"
+  moonraker:
+    image: moonraker:latest
+    build:
+      context: docker/moonraker
+      target: run
+
+  tools:
+    image: klipper:latest-tools
+    build:
+      context: docker/klipper
+      target: tools

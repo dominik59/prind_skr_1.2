@@ -15,6 +15,7 @@ command -v docker >/dev/null 2>&1 || fail "Docker is required."
 docker compose version >/dev/null 2>&1 || fail "Docker Compose v2 is required."
 
 cd "$repository_root"
-docker compose --profile mainsail pull
+docker compose --profile mainsail pull --ignore-buildable
+docker compose --profile mainsail build --pull --no-cache klipper moonraker
 docker compose --profile mainsail up -d
-printf 'Mainsail stack is running with the latest pulled images.\n'
+printf 'Mainsail stack is running with current registry images and locally built runtime services.\n'

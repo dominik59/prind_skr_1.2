@@ -33,6 +33,16 @@ CONFIG_INITIAL_PINS="!PC13"
 EOF
 }
 
+build_tools_image() {
+  local repository_path=$1
+
+  docker compose \
+    --project-directory "$repository_path" \
+    -f "$repository_path/docker-compose.extra.tools.yaml" \
+    -f "$repository_path/docker-compose.override.yaml" \
+    build --pull --no-cache tools
+}
+
 run_tools() {
   local repository_path=$1
   local command=$2
@@ -40,6 +50,7 @@ run_tools() {
   docker compose \
     --project-directory "$repository_path" \
     -f "$repository_path/docker-compose.extra.tools.yaml" \
+    -f "$repository_path/docker-compose.override.yaml" \
     run --rm tools "$command"
 }
 
@@ -59,6 +70,9 @@ main() {
     printf 'Replacing %s with the SKR mini E3 v1.2 build configuration.\n' "$config_path"
   fi
   write_build_configuration "$config_path"
+
+  printf 'Building tools image with the latest Klipper master...\n'
+  build_tools_image "$root"
 
   printf 'Configuring Klipper for STM32F103 with a 28 KiB bootloader and USB...\n'
   run_tools "$root" "make olddefconfig"
