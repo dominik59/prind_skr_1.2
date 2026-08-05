@@ -111,6 +111,11 @@ e.g.
 docker compose --profile fluidd up -d
 ```
 
+To start the stack with Mainsail:
+```
+docker compose --profile mainsail up -d
+```
+
 Switching between profiles requires the whole stack to be torn down before starting another Frontend.  
 Running two Frontends at the same time is currently not supported behind a proxy.
 Switching from fluidd to mainsail would look like this: 
