@@ -1,3 +1,5 @@
+This Image is built and used by [prind](.).
+
 # Moonraker packaged in Docker
 ## What is Moonraker?
 
@@ -6,7 +8,7 @@
 _via https://moonraker.readthedocs.io/en/latest/_
 
 ## Usage
-Moonraker requires Klipper to operate. See the Images' [README.md](../klipper/README.md) on how to run the Klipper Image.  
+Moonraker requires Klipper to operate. See the Images' [README.md](/docker/klipper/README.md) on how to run the Klipper Image.  
 Both Containers need to share their `run` Volume in order to be able to communicate via klippers unix socket. Configure Moonraker to use `/opt/printer_data/run/klipper.sock` as klippys uds address.  
 
 Create `moonraker.conf` and `printer.cfg` as well as the directories `run` and `gcode`, then run the containers.
@@ -14,14 +16,15 @@ Create `moonraker.conf` and `printer.cfg` as well as the directories `run` and `
 #### Run
 ```bash
 docker run \
-  --device /dev/ttymxc3:/dev/ttymxc3 \
-  -v $(pwd)/run:/printer_data/run \
+  --privileged \
+  -v /dev:/dev \
+  -v $(pwd)/run:/opt/printer_data/run \
   -v $(pwd)/gcode:/opt/printer_data/gcodes \
   -v $(pwd)/printer.cfg:/opt/printer_data/config/printer.cfg \
   mkuf/klipper:latest
 
 docker run \
-  -v $(pwd)/run:/printer_data/run \
+  -v $(pwd)/run:/opt/printer_data/run \
   -v $(pwd)/gcode:/opt/printer_data/gcodes \
   -v $(pwd)/moonraker.conf:/opt/printer_data/config/moonraker.conf \
   -p 7125:7125 \
@@ -33,9 +36,9 @@ docker run \
 services:
   klipper:
     image: mkuf/klipper:latest
-    devices:
-      - /dev/ttymxc3:/dev/ttymxc3
+    privileged: true
     volumes:
+      - /dev:/dev
       - ./printer.cfg:/opt/printer_data/conf/printer.cfg
       - ./run:/opt/printer_data/run
       - ./gcode:/opt/printer_data/gcodes
@@ -74,11 +77,35 @@ services:
 ## Tags
 |Tag|Description|Static|
 |---|---|---|
-|`latest`/`nightly`|Refers to the most recent runtime Image.|May point to a new build within 24h, depending on code changes in the upstream repository.|
-|`<7-digit-sha>` <br>eg: `d37f91c`|Refers to a specific commit SHA in the upstream repository. eg: [Arksine/moonraker:d37f91c](https://github.com/Arksine/moonraker/commit/d37f91c9c864302e750385297d2aa2a0c9b43035)|Yes|
+|`latest`|Refers to the most recent runtime Image.|May point to a new build within 24h, depending on code changes in the upstream repository.|
+|`<git description>` <br>eg: `v0.8.0-314-gaadff0d`|Refers to a specific [git description](https://git-scm.com/docs/git-describe#_examples) in the upstream repository. eg: [arksine/moonraker:v0.8.0-314-gaadff0d](https://github.com/Arksine/moonraker/commit/aadff0d54e98a536c13d4aca295e3250e06b67b8)|Yes|
 
 ## Targets
 |Target|Description|Pushed|
 |---|---|---|
 |`build`|Pull Upstream Codebase and build python venv|No|
 |`run`|Default runtime Image|Yes|
+
+## Healthcheck
+`/opt/health.sh` gets executed every 5s inside the container.  
+
+> Be aware that enabling health checks in docker may increase CPU usage drastically.  
+> In tests, cpu usage of the container was doubled when executing the healtch check every 30s and increased sixfold when executing every 5s.  
+> This may lead to resource shortages on low powered host and unwanted behaviour  
+
+The script does the following:
+* queries the `/server/info` endpoint of moonraker
+* Performs the following checks
+  * Number of failed moonraker_components = 0
+  * klippy_connected is `true`
+  * klippy_state is `ready`
+* If one of the above requirements is not met, the script exits with a failure state to indicate the container is unhealthy
+
+Compose example:
+```yaml
+services:
+  moonraker:
+    healthcheck:
+      test: ["bash", "/opt/health.sh"]
+      interval: 30s
+```

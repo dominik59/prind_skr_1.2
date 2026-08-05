@@ -1,6 +1,6 @@
-FROM python:3 as build
+FROM python:3.13-trixie AS build
 
-ARG REPO=https://github.com/jordanruthe/KlipperScreen
+ARG REPO=https://github.com/KlipperScreen/KlipperScreen
 ARG VERSION=master
 
 RUN apt update \
@@ -8,6 +8,7 @@ RUN apt update \
       libgirepository1.0-dev \
       libdbus-glib-1-dev \
       cmake \
+      libsystemd-dev \
  && apt clean
 
 WORKDIR /opt
@@ -18,14 +19,14 @@ RUN git clone ${REPO} klipperscreen \
 RUN python -m venv venv \
  && venv/bin/pip install -r klipperscreen/scripts/KlipperScreen-requirements.txt
 
-FROM python:3-slim as run
+FROM python:3.13-slim-trixie AS run
 
 RUN apt update \
  && apt install -y \
       git \
       xdotool \
       x11-xserver-utils \
-      libglib2.0-0 \
+      libglib2.0-0t64 \
       libgirepository-1.0-1 \
       gir1.2-gtk-3.0 \
       libopenjp2-7 \

@@ -34,44 +34,43 @@ read
 
 tmpdir=$(mktemp -d --suffix=-prind)
 
-function log {
-  echo -e "\033[0;36m\n## ${1} \033[0m"
+function pad_cmd {
+  echo "## ${@}"
+  ${@}
+  echo "## END ${@}"
+  echo ""
 }
 
+commands=(
+  "docker system info"
+  "docker compose version"
+  "docker system df"
+  "docker image ls"
+  "df -h"
+  "ls -lRn /dev"
+  "docker ps -af label=org.prind.service"
+  "docker cp $(docker ps -aqf label=org.prind.service=klipper):/opt/printer_data/logs ${tmpdir}"
+  "cp -a $(pwd) $tmpdir"
+)
+
 (
-  log "System Info"
-  docker system info
-
-  log "Compose Version"
-  docker compose version
-
-  log "System df"
-  docker system df
-
-  log "Docker Images"
-  docker image ls
-
-  log "Disk Space"
-  df -h
-
-  log "Connected devices"
-  ls -l /dev
-
-  log "Image Versions of running containers"
-  for i in $(docker compose ps --services); do
-    container=$(docker compose ps -aq ${i})
-    echo "${i}: $(docker inspect --format '{{ index .Config.Image }}' ${container}) $(docker inspect --format '{{ index .Config.Labels "org.prind.image.version"}}' ${container})"
+  for cmd in "${commands[@]}"; do
+    pad_cmd ${cmd}
   done
 
-  log "All Containers"
-  docker compose ps -a
-) | tee ${tmpdir}/runtime-info.txt
+  echo "## Image Versions"
+  for container in $(docker ps -aqf "label=org.prind.service"); do
+    echo "$(docker inspect --format '{{ index .Config.Labels "org.prind.service" }}' ${container}): $(docker inspect --format '{{ index .Config.Image }}' ${container}) $(docker inspect --format '{{ index .Config.Labels "org.prind.image.version"}}' ${container})"
+  done
+  echo "## END Image Versions"
 
-log "Retrieving Klipper/Moonraker Logfiles"
-docker compose cp klipper:/opt/printer_data/logs ${tmpdir}
+) > ${tmpdir}/info.txt 2>&1
 
-log "Copying current configs"
-cp -a $(pwd) $tmpdir
+## Generate archive
+archive_name="prind-info-$(date +%d%m%Y-%H%M%S).tar.gz"
+tar --exclude "out" --exclude "resonances" -cf ${archive_name} ${tmpdir} 2> /dev/null
 
-log "Generating Archive"
-tar --exclude-vcs -cvf prind-info-$(date +%d%m%Y-%H%M%S).tar.gz ${tmpdir}
+## Prompt user to upload the generated file
+echo -e "
+\033[1;32mSuccess:\033[0m Please attach \033[1;33m${archive_name}\033[0m to your issue.
+"

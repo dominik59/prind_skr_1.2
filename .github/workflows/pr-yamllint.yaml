@@ -1,0 +1,13 @@
+name: YAML Lint
+
+on: pull_request
+
+jobs:
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Run yamllint
+        uses: reviewdog/action-yamllint@v1

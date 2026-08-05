@@ -4,3 +4,5 @@ out
 *.bkp
 resonances
 *.tar.gz
+venv
+.DS_Store
