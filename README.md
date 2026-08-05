@@ -276,6 +276,22 @@ docker compose --profile <profile> pull
 docker compose --profile <profile> up -d
 ``` 
 
+### Updating from the official repository
+
+To merge changes from the official [`mkuf/prind`](https://github.com/mkuf/prind) repository into a local fork, run the following command from any directory:
+
+```bash
+./scripts/merge-upstream.sh
+```
+
+The script requires a clean Git working tree, fetches the official `main` branch, and creates a `backup/pre-upstream-<timestamp>` branch before merging. It stops on conflicts so local printer configuration can be reviewed and resolved safely. To preview incoming commits without changing files, use:
+
+```bash
+./scripts/merge-upstream.sh --dry-run
+```
+
+Use `--no-commit` to inspect a conflict-free merge before committing it. If a conflict occurs, resolve it, run `git add <files>` and `git commit`; use `git merge --abort` to cancel the merge.
+
 ## Advanced Topics
 ### Device permissions
 Adjusting permissions for devices connected to your host may become necessary, especially if you're using a non-Debian-based distribution with varying numerical group IDs.  
