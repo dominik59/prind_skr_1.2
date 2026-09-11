@@ -6,6 +6,8 @@ services:
       target: run
     devices:
       - /dev/serial/by-id/usb-Klipper_stm32f103xe_37FFD7054246383412640557-if00:/dev/serial/by-id/usb-Klipper_stm32f103xe_37FFD7054246383412640557-if00
+    volumes:
+      - ./custom/klippy_extras/mesh_plane.py:/opt/klipper/klippy/extras/mesh_plane.py:ro
 
   moonraker:
     image: moonraker:latest
